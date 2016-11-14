@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          package="qbai22.com.photogallery">
+
+
+    <permission
+        android:name="qbai22.com.photogallery.PRIVATE"
+        android:protectionLevel="signature"/>
+
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <uses-permission android:name="qbai22.com.photogallery.PRIVATE"/>
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+
+        <activity
+            android:name=".screen.PhotoGalleryActivity"
+            android:label="Flickr Gallery">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".screen.PhotoPageActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"/>
+
+        <service android:name=".service.PollService"/>
+
+        <receiver android:name=".service.StartupReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+            </intent-filter>
+        </receiver>
+        <receiver
+            android:name=".service.NotificationReceiver"
+            android:exported="false">
+
+            <intent-filter android:priority="-999">
+                <action android:name="qbai22.com.photogallery.SHOW_NOTIFICATION"/>
+            </intent-filter>
+
+        </receiver>
+
+    </application>
+
+</manifest>
