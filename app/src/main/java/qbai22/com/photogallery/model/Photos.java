@@ -8,5 +8,4 @@ import java.util.List;
 
 public class Photos {
     public List<GalleryItem> photo;
-
 }

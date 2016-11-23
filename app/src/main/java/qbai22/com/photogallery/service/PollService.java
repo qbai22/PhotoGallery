@@ -35,7 +35,7 @@ public class PollService extends IntentService {
     public static final String REQUEST_CODE = "REQUEST CODE";
     public static final String NOTIFICATION = "NOTIFICATION";
     private static final String TAG = "PollSERVICE";
-    private static final long POLL_INTERVAL = 5000;
+    private static final long POLL_INTERVAL = AlarmManager.INTERVAL_FIFTEEN_MINUTES;
 
 
     public PollService() {
@@ -127,11 +127,6 @@ public class PollService extends IntentService {
                 .setContentIntent(pendingIntent)
                 .setAutoCancel(true)
                 .build();
-
-        // TODO: 13.11.2016 удалить
-       /* NotificationManagerCompat notificationManager =
-                NotificationManagerCompat.from(this);
-        notificationManager.notify(0, notification);*/
 
         Intent broadcastIntent = new Intent(ACTION_SHOW_NOTIFICATION);
         broadcastIntent.putExtra(REQUEST_CODE, requestCode);
