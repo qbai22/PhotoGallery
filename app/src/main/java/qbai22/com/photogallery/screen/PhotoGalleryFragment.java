@@ -170,7 +170,7 @@ public class PhotoGalleryFragment extends VisibleFragment {
 
     private void fetchData(int pageNumber) {
 
-        FlickrService flickrService = FlickrService.rerofit
+        FlickrService flickrService = FlickrService.retrofit
                 .create(FlickrService.class);
         Call<Flickr> call = flickrService.getPageFlickr(pageNumber);
         call.enqueue(new Callback<Flickr>() {
@@ -197,7 +197,7 @@ public class PhotoGalleryFragment extends VisibleFragment {
         }
         QueryPreferences.setStoredQuery(getActivity(), codeWord); // saving query for service calls
 
-        FlickrService flickrService = FlickrService.rerofit
+        FlickrService flickrService = FlickrService.retrofit
                 .create(FlickrService.class);
         Call<Flickr> call = flickrService.searchFlickr(pageNumber, codeWord);
         call.enqueue(new Callback<Flickr>() {

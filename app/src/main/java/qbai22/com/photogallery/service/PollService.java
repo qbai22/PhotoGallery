@@ -80,7 +80,7 @@ public class PollService extends IntentService {
         String query = QueryPreferences.getStoredQuery(this);
         String lastResultId = QueryPreferences.getLastResultId(this);
 
-        FlickrService flickrService = FlickrService.rerofit
+        FlickrService flickrService = FlickrService.retrofit
                 .create(FlickrService.class);
         Call<Flickr> call;
         if (query == null || query.equals("")) {

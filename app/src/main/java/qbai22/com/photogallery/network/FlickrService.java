@@ -14,7 +14,7 @@ public interface FlickrService {
 
     final String API_KEY = "cc71ad3c1fb96e8f81ffc3a5d6d81ade";
 
-    Retrofit rerofit = new Retrofit.Builder()
+    Retrofit retrofit = new Retrofit.Builder()
             .baseUrl("https://api.flickr.com/services/rest/")
             .addConverterFactory(GsonConverterFactory.create())
             .build();
