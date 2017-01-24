@@ -23,12 +23,13 @@ import com.squareup.picasso.Picasso;
 import java.util.ArrayList;
 import java.util.List;
 
-import qbai22.com.photogallery.service.PollService;
-import qbai22.com.photogallery.utils.QueryPreferences;
 import qbai22.com.photogallery.R;
 import qbai22.com.photogallery.model.Flickr;
 import qbai22.com.photogallery.model.GalleryItem;
+import qbai22.com.photogallery.network.ApiFactory;
 import qbai22.com.photogallery.network.FlickrService;
+import qbai22.com.photogallery.service.PollService;
+import qbai22.com.photogallery.utils.QueryPreferences;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -170,17 +171,21 @@ public class PhotoGalleryFragment extends VisibleFragment {
 
     private void fetchData(int pageNumber) {
 
-        FlickrService flickrService = FlickrService.retrofit
-                .create(FlickrService.class);
+        FlickrService flickrService = ApiFactory.getFlickrService();
+
         Call<Flickr> call = flickrService.getPageFlickr(pageNumber);
+        String s = flickrService.getPageFlickr(pageNumber).request().url().toString();
+        Log.e(TAG, "onResponse:  " + s );
         call.enqueue(new Callback<Flickr>() {
             @Override
             public void onResponse(Call<Flickr> call, Response<Flickr> response) {
-                List<GalleryItem> responseList = response.body().photos.photo;
-                mItems.addAll(responseList);
-                mPhotoAdapter.notifyDataSetChanged();
-                QueryPreferences.setLastResultId(getActivity(),
-                        mItems.get(mItems.size() - 1).getId());
+                    Log.e(TAG, "onResponse  " +  call.request().url().toString());
+                    List<GalleryItem> responseList = response.body().photos.photo;
+                    mItems.addAll(responseList);
+                    mPhotoAdapter.notifyDataSetChanged();
+                    QueryPreferences.setLastResultId(getActivity(),
+                            mItems.get(mItems.size() - 1).getId());
+
             }
 
             @Override
@@ -197,12 +202,13 @@ public class PhotoGalleryFragment extends VisibleFragment {
         }
         QueryPreferences.setStoredQuery(getActivity(), codeWord); // saving query for service calls
 
-        FlickrService flickrService = FlickrService.retrofit
-                .create(FlickrService.class);
+        FlickrService flickrService = ApiFactory.getFlickrService();
         Call<Flickr> call = flickrService.searchFlickr(pageNumber, codeWord);
+
         call.enqueue(new Callback<Flickr>() {
             @Override
             public void onResponse(Call<Flickr> call, Response<Flickr> response) {
+                Log.e(TAG, "onResponse  " +  call.request().url().toString());
                 mItems.addAll(response.body().photos.photo);
                 mPhotoAdapter.notifyDataSetChanged();
             }
@@ -227,14 +233,14 @@ public class PhotoGalleryFragment extends VisibleFragment {
             itemView.setOnClickListener(this);
         }
 
-        public void bindGalleryItem(GalleryItem galleryItem){
+        public void bindGalleryItem(GalleryItem galleryItem) {
             mGalleryItem = galleryItem;
         }
 
         @Override
         public void onClick(View view) {
-           Intent i = PhotoPageActivity
-                   .newIntent(getActivity(), mGalleryItem.getPhotoPageUri());
+            Intent i = PhotoPageActivity
+                    .newIntent(getActivity(), mGalleryItem.getPhotoPageUri());
             startActivity(i);
         }
     }

@@ -15,6 +15,7 @@ import android.util.Log;
 
 import java.util.List;
 
+import qbai22.com.photogallery.network.ApiFactory;
 import qbai22.com.photogallery.utils.QueryPreferences;
 import qbai22.com.photogallery.R;
 import qbai22.com.photogallery.model.Flickr;
@@ -80,8 +81,7 @@ public class PollService extends IntentService {
         String query = QueryPreferences.getStoredQuery(this);
         String lastResultId = QueryPreferences.getLastResultId(this);
 
-        FlickrService flickrService = FlickrService.retrofit
-                .create(FlickrService.class);
+        FlickrService flickrService = ApiFactory.getFlickrService();
         Call<Flickr> call;
         if (query == null || query.equals("")) {
             call = flickrService.getPageFlickr(1); // most recent images

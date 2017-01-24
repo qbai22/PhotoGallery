@@ -4,9 +4,7 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 
-/**
- * Created by qbai on 20.10.2016.
- */
+
 public abstract class EndlessRecyclerViewScrollListener extends RecyclerView.OnScrollListener {
     RecyclerView.LayoutManager mLayoutManager;
     // The minimum amount of items to have below your current scroll position
