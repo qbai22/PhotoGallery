@@ -4,9 +4,6 @@ import android.net.Uri;
 
 import com.google.gson.annotations.SerializedName;
 
-/**
- * Created by qbai on 17.10.2016.
- */
 
 public class GalleryItem {
     public String id;

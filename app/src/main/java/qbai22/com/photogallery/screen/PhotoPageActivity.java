@@ -5,10 +5,6 @@ import android.content.Intent;
 import android.net.Uri;
 import android.support.v4.app.Fragment;
 
-/**
- * Created by qbai on 13.11.2016.
- */
-
 public class PhotoPageActivity extends SingleFragmentActivity {
 
     PhotoPageFragment mPhotoPageFragment;

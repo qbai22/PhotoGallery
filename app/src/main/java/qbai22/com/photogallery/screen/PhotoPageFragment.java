@@ -16,10 +16,6 @@ import android.widget.ProgressBar;
 
 import qbai22.com.photogallery.R;
 
-/**
- * Created by qbai on 13.11.2016.
- */
-
 public class PhotoPageFragment extends VisibleFragment {
 
     private static final String ARG_URI = "photo_page_url";

@@ -10,7 +10,7 @@ import okhttp3.Request;
 import okhttp3.Response;
 import qbai22.com.photogallery.BuildConfig;
 
-public class FlickrInterceptor implements Interceptor{
+public class ApiRequestInterceptor implements Interceptor{
     private static final String TAG = " API KEY INTER ";
     @Override
     public Response intercept(Chain chain) throws IOException {

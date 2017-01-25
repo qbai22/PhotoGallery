@@ -8,10 +8,6 @@ import android.support.v7.app.AppCompatActivity;
 
 import qbai22.com.photogallery.R;
 
-/**
- * Created by qbai on 08.10.2016.
- */
-
 public abstract class SingleFragmentActivity extends AppCompatActivity {
 
     abstract Fragment createFragment();

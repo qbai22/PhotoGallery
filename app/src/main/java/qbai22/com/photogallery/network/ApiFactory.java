@@ -1,9 +1,12 @@
 package qbai22.com.photogallery.network;
 
 
+import com.jakewharton.retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
+
 import okhttp3.OkHttpClient;
 import qbai22.com.photogallery.BuildConfig;
 import retrofit2.Retrofit;
+
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class ApiFactory {
@@ -29,7 +32,7 @@ public class ApiFactory {
                 .baseUrl(BuildConfig.API_ENDPOINT)
                 .client(getClient())
                 .addConverterFactory(GsonConverterFactory.create())
-      //          .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
+                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .build()
                 .create(FlickrService.class);
     }
@@ -49,7 +52,7 @@ public class ApiFactory {
 
     public static OkHttpClient buildClient(){
         return new OkHttpClient.Builder()
-                .addInterceptor(new FlickrInterceptor())
+                .addInterceptor(new ApiRequestInterceptor())
                 .build();
     }
 

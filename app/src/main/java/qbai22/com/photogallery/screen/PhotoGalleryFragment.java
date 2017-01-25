@@ -23,30 +23,32 @@ import com.squareup.picasso.Picasso;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
 import qbai22.com.photogallery.R;
-import qbai22.com.photogallery.model.Flickr;
 import qbai22.com.photogallery.model.GalleryItem;
 import qbai22.com.photogallery.network.ApiFactory;
-import qbai22.com.photogallery.network.FlickrService;
 import qbai22.com.photogallery.service.PollService;
 import qbai22.com.photogallery.utils.QueryPreferences;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
+
 
 public class PhotoGalleryFragment extends VisibleFragment {
 
     private static final String TAG = "PhotoGalleryFragment";
 
-    private final int pollJobId = 1;
-    private int standartColumns = 3;
-    private int colWidth = 375;
+    private final int POLL_JOB_ID = 1;
+    private final int STANDART_COLUMNS = 3;
+    private final int COLUMN_WIDTH = 375;
+
     private int mPageNumber = 1;
 
     private RecyclerView mRecyclerView;
     private GridLayoutManager mLayoutManager;
     private PhotoAdapter mPhotoAdapter;
     private List<GalleryItem> mItems = new ArrayList<>();
+    private Disposable mFetchDisposable;
+    private Disposable mSearchDisposable;
 
     public static PhotoGalleryFragment newInstance() {
         Bundle args = new Bundle();
@@ -138,15 +140,15 @@ public class PhotoGalleryFragment extends VisibleFragment {
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_photo_gallery, container, false);
 
-        mLayoutManager = new GridLayoutManager(getActivity(), standartColumns);
+        mLayoutManager = new GridLayoutManager(getActivity(), STANDART_COLUMNS);
         mRecyclerView = (RecyclerView) v
                 .findViewById(R.id.recycler_view_fragment);
         mRecyclerView.setLayoutManager(mLayoutManager);
 
         //calculating number of columns depending on screen size
         mRecyclerView.getViewTreeObserver().addOnGlobalLayoutListener(() -> {
-            int colCount = Math.round(mRecyclerView.getWidth() / colWidth);
-            if (colCount != standartColumns) {
+            int colCount = Math.round(mRecyclerView.getWidth() / COLUMN_WIDTH);
+            if (colCount != STANDART_COLUMNS) {
                 GridLayoutManager layoutManager = (GridLayoutManager) mRecyclerView.getLayoutManager();
                 layoutManager.setSpanCount(colCount);
             }
@@ -170,29 +172,12 @@ public class PhotoGalleryFragment extends VisibleFragment {
     }
 
     private void fetchData(int pageNumber) {
-
-        FlickrService flickrService = ApiFactory.getFlickrService();
-
-        Call<Flickr> call = flickrService.getPageFlickr(pageNumber);
-        String s = flickrService.getPageFlickr(pageNumber).request().url().toString();
-        Log.e(TAG, "onResponse:  " + s );
-        call.enqueue(new Callback<Flickr>() {
-            @Override
-            public void onResponse(Call<Flickr> call, Response<Flickr> response) {
-                    Log.e(TAG, "onResponse  " +  call.request().url().toString());
-                    List<GalleryItem> responseList = response.body().photos.photo;
-                    mItems.addAll(responseList);
-                    mPhotoAdapter.notifyDataSetChanged();
-                    QueryPreferences.setLastResultId(getActivity(),
-                            mItems.get(mItems.size() - 1).getId());
-
-            }
-
-            @Override
-            public void onFailure(Call<Flickr> call, Throwable t) {
-                Log.e(TAG, t.toString());
-            }
-        });
+        mFetchDisposable = ApiFactory.getFlickrService().getPageFlickr(pageNumber)
+                .map(flickr -> flickr.photos.photo)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(this::udatePictures,
+                        t -> Log.e(TAG, "fetchData: ", t));
     }
 
     private void searchData(int pageNumber, String codeWord) {
@@ -202,22 +187,36 @@ public class PhotoGalleryFragment extends VisibleFragment {
         }
         QueryPreferences.setStoredQuery(getActivity(), codeWord); // saving query for service calls
 
-        FlickrService flickrService = ApiFactory.getFlickrService();
-        Call<Flickr> call = flickrService.searchFlickr(pageNumber, codeWord);
+        mSearchDisposable = ApiFactory.getFlickrService().searchFlickr(pageNumber, codeWord)
+                .map(flickr -> flickr.photos.photo)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(this::udatePictures,
+                        t -> Log.e(TAG, "searchData: ", t));
+    }
 
-        call.enqueue(new Callback<Flickr>() {
-            @Override
-            public void onResponse(Call<Flickr> call, Response<Flickr> response) {
-                Log.e(TAG, "onResponse  " +  call.request().url().toString());
-                mItems.addAll(response.body().photos.photo);
-                mPhotoAdapter.notifyDataSetChanged();
-            }
+    @Override
+    public void onPause() {
+        dispose();
+        super.onPause();
+    }
 
-            @Override
-            public void onFailure(Call<Flickr> call, Throwable t) {
-                Log.e(TAG, t.toString());
-            }
-        });
+    private void udatePictures(List<GalleryItem> list) {
+        mItems.addAll(list);
+        mPhotoAdapter.notifyDataSetChanged();
+        QueryPreferences.setLastResultId(getActivity(),
+                mItems.get(mItems.size() - 1).getId());
+    }
+
+    private void dispose() {
+        if (mFetchDisposable != null &&
+                !mFetchDisposable.isDisposed()) {
+            mFetchDisposable.dispose();
+        }
+        if (mSearchDisposable != null &&
+                !mSearchDisposable.isDisposed()) {
+            mSearchDisposable.dispose();
+        }
     }
 
     private class PhotoHolder extends RecyclerView.ViewHolder implements
@@ -282,4 +281,5 @@ public class PhotoGalleryFragment extends VisibleFragment {
             this.notifyItemRangeRemoved(0, size);
         }
     }
+
 }

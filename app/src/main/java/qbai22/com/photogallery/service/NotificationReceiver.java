@@ -8,9 +8,6 @@ import android.content.Intent;
 import android.support.v4.app.NotificationManagerCompat;
 import android.util.Log;
 
-/**
- * Created by qbai on 13.11.2016.
- */
 
 public class NotificationReceiver extends BroadcastReceiver {
     private static final String TAG = "NOTIFICATION RECEIVER";

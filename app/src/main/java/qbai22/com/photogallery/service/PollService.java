@@ -13,27 +13,27 @@ import android.os.SystemClock;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
-import java.util.List;
-
-import qbai22.com.photogallery.network.ApiFactory;
-import qbai22.com.photogallery.utils.QueryPreferences;
+import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.schedulers.Schedulers;
 import qbai22.com.photogallery.R;
 import qbai22.com.photogallery.model.Flickr;
-import qbai22.com.photogallery.model.GalleryItem;
+import qbai22.com.photogallery.network.ApiFactory;
 import qbai22.com.photogallery.network.FlickrService;
 import qbai22.com.photogallery.screen.PhotoGalleryActivity;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
+import qbai22.com.photogallery.utils.QueryPreferences;
 
+//This service checks availability of new pictures
+//by comparing Id's, and make an notification if id's are different
 
 public class PollService extends IntentService {
     public static final String ACTION_SHOW_NOTIFICATION =
             "qbai22.com.photogallery.SHOW_NOTIFICATION";
     public static final String PERMISSION_PRIVATE =
             "qbai22.com.photogallery.PRIVATE";
-    //AlarmManager.INTERVAL_FIFTEEN_MINUTES;
+
     public static final String REQUEST_CODE = "REQUEST CODE";
+    public static final int REQUEST_CODE_VALUE = 0;
     public static final String NOTIFICATION = "NOTIFICATION";
     private static final String TAG = "PollSERVICE";
     private static final long POLL_INTERVAL = AlarmManager.INTERVAL_FIFTEEN_MINUTES;
@@ -82,36 +82,25 @@ public class PollService extends IntentService {
         String lastResultId = QueryPreferences.getLastResultId(this);
 
         FlickrService flickrService = ApiFactory.getFlickrService();
-        Call<Flickr> call;
+
+        Observable<Flickr> flickrObservable;
         if (query == null || query.equals("")) {
-            call = flickrService.getPageFlickr(1); // most recent images
+            flickrObservable = flickrService.getPageFlickr(1); // most recent images
         } else {
-            call = flickrService.searchFlickr(1, query); // most recent + query
+            flickrObservable = flickrService.searchFlickr(1, query); // most recent + query
         }
-        call.enqueue(new Callback<Flickr>() {
-            @Override
-            public void onResponse(Call<Flickr> call, Response<Flickr> response) {
-                List<GalleryItem> responseList = response.body().photos.photo;
-                if (responseList.size() == 0) {
-                    return;
-                }
-                String resultId = responseList.get(0).getId();
-                if (lastResultId.equals(resultId)) {
-                    Log.e(TAG, "got an old result  " + lastResultId);
-                } else {
-                    Log.e(TAG, "got a new result  " + resultId);
-                    showBackgroundNotification(0);
-
-                }
-                QueryPreferences.setLastResultId(PollService.this, resultId);
-
-            }
-
-            @Override
-            public void onFailure(Call<Flickr> call, Throwable t) {
-                Log.e(TAG, t.toString());
-            }
-        });
+        flickrObservable
+                .map(flickr -> flickr.photos.photo)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(list -> {
+                    if (list != null) {
+                        String resultId = list.get(0).getId();
+                        if (!lastResultId.equals(resultId)) {
+                            showBackgroundNotification(REQUEST_CODE_VALUE);
+                        }
+                    }
+                }, t -> Log.e(TAG, "onHandleIntent: ", t));
     }
 
     private void showBackgroundNotification(int requestCode) {
